@@ -21,7 +21,7 @@ import {
   where,
   serverTimestamp 
 } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { formatCurrency, cn } from '../lib/utils';
 import { generateInvoice } from '../lib/pdf';
 import { motion, AnimatePresence } from 'motion/react';
@@ -50,9 +50,13 @@ export default function Cashier() {
 
   useEffect(() => {
     const fetchProducts = async () => {
-      const querySnapshot = await getDocs(collection(db, 'products'));
-      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
-      setProducts(data);
+      try {
+        const querySnapshot = await getDocs(collection(db, 'products'));
+        const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+        setProducts(data);
+      } catch (error) {
+        handleFirestoreError(error, OperationType.GET, 'products');
+      }
     };
     fetchProducts();
   }, []);
@@ -111,28 +115,30 @@ export default function Cashier() {
         totalAmount,
         profit: totalProfit,
         timestamp: serverTimestamp()
-      });
+      }).catch(err => handleFirestoreError(err, OperationType.CREATE, 'sales'));
+
+      if (!saleRef) return;
 
       // 2. Update Stock
       for (const item of cart) {
         const productRef = doc(db, 'products', item.id);
         await updateDoc(productRef, {
           stock: increment(-item.quantity)
-        });
+        }).catch(err => handleFirestoreError(err, OperationType.UPDATE, `products/${item.id}`));
       }
 
       // 3. Update/Create Customer
       if (customer.phone) {
         const customersRef = collection(db, 'customers');
         const q = query(customersRef, where('phone', '==', customer.phone));
-        const qSnap = await getDocs(q);
+        const qSnap = await getDocs(q).catch(err => handleFirestoreError(err, OperationType.QUERY, 'customers'));
         
-        if (!qSnap.empty) {
+        if (qSnap && !qSnap.empty) {
           const custDoc = qSnap.docs[0];
           await updateDoc(doc(db, 'customers', custDoc.id), {
             totalSpent: increment(totalAmount),
             lastPurchaseDate: serverTimestamp()
-          });
+          }).catch(err => handleFirestoreError(err, OperationType.UPDATE, `customers/${custDoc.id}`));
         } else if (customer.name) {
           await addDoc(customersRef, {
             name: customer.name,
@@ -140,7 +146,7 @@ export default function Cashier() {
             totalSpent: totalAmount,
             lastPurchaseDate: serverTimestamp(),
             createdAt: serverTimestamp()
-          });
+          }).catch(err => handleFirestoreError(err, OperationType.CREATE, 'customers'));
         }
       }
 

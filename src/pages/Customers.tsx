@@ -12,7 +12,7 @@ import {
   query, 
   orderBy 
 } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { formatCurrency, formatDate } from '../lib/utils';
 
 interface Customer {
@@ -35,7 +35,7 @@ export default function Customers() {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Customer));
       setCustomers(data);
-    });
+    }, (error) => handleFirestoreError(error, OperationType.LIST, 'customers'));
     return unsubscribe;
   }, []);
 

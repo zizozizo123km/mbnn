@@ -19,7 +19,7 @@ import {
   orderBy,
   serverTimestamp 
 } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { formatCurrency, cn } from '../lib/utils';
 import { Modal } from '../components/ui/Modal';
 import { motion } from 'motion/react';
@@ -57,7 +57,7 @@ export default function Products() {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Material));
       setMaterials(data);
       setIsLoading(false);
-    });
+    }, (error) => handleFirestoreError(error, OperationType.LIST, 'products'));
     return unsubscribe;
   }, []);
 
@@ -100,12 +100,12 @@ export default function Products() {
 
     try {
       if (editingMaterial) {
-        await updateDoc(doc(db, 'products', editingMaterial.id), data);
+        await updateDoc(doc(db, 'products', editingMaterial.id), data).catch(err => handleFirestoreError(err, OperationType.UPDATE, `products/${editingMaterial.id}`));
       } else {
         await addDoc(collection(db, 'products'), {
           ...data,
           createdAt: serverTimestamp()
-        });
+        }).catch(err => handleFirestoreError(err, OperationType.CREATE, 'products'));
       }
       setIsModalOpen(false);
     } catch (error) {
@@ -116,7 +116,7 @@ export default function Products() {
   const handleDelete = async (id: string) => {
     if (window.confirm('هل أنت متأكد من حذف هذه المادة؟')) {
       try {
-        await deleteDoc(doc(db, 'products', id));
+        await deleteDoc(doc(db, 'products', id)).catch(err => handleFirestoreError(err, OperationType.DELETE, `products/${id}`));
       } catch (error) {
         console.error("Error deleting product:", error);
       }

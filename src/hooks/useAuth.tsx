@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { auth } from '../lib/firebase';
+import { signInAnonymously, onAuthStateChanged, signOut } from 'firebase/auth';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -14,25 +16,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const authStatus = localStorage.getItem('isLoggedIn');
-    if (authStatus === 'true') {
-      setIsAuthenticated(true);
-    }
-    setLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
+      }
+      setLoading(false);
+    });
+    return unsubscribe;
   }, []);
 
   const login = async (pin: string): Promise<boolean> => {
     if (pin === '0000') {
-      setIsAuthenticated(true);
-      localStorage.setItem('isLoggedIn', 'true');
-      return true;
+      try {
+        await signInAnonymously(auth);
+        return true;
+      } catch (error) {
+        console.error("Firebase Anonymous Auth failed:", error);
+        return false;
+      }
     }
     return false;
   };
 
-  const logout = () => {
-    setIsAuthenticated(false);
-    localStorage.removeItem('isLoggedIn');
+  const logout = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   return (

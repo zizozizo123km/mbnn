@@ -13,7 +13,7 @@ import {
   query, 
   orderBy 
 } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { formatCurrency, cn } from '../lib/utils';
 
 interface Material {
@@ -34,7 +34,7 @@ export default function Inventory() {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Material));
       setMaterials(data);
-    });
+    }, (error) => handleFirestoreError(error, OperationType.LIST, 'products'));
     return unsubscribe;
   }, []);
 

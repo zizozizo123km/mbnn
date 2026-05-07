@@ -17,7 +17,7 @@ import {
   Timestamp,
   getDocs
 } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { formatCurrency, formatDate, cn } from '../lib/utils';
 import { motion } from 'motion/react';
 import { generateInvoice } from '../lib/pdf';
@@ -69,7 +69,7 @@ export default function Profits() {
         totalProfit: totalP,
         salesCount: filtered.length
       });
-    });
+    }, (error) => handleFirestoreError(error, OperationType.LIST, 'sales'));
     return unsubscribe;
   }, [filter]);
 
