@@ -1,0 +1,22 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;400;600;700;900&family=Inter:wght@100..900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "Cairo", ui-sans-serif, system-ui, sans-serif;
+  --font-arabic: "Cairo", sans-serif;
+  --color-primary: var(--color-emerald-500);
+  --color-sidebar-bg: var(--color-slate-900);
+  --color-app-bg: #f8fafc;
+}
+
+@layer base {
+  html {
+    direction: rtl;
+    font-family: var(--font-arabic);
+  }
+  body {
+    background-color: var(--color-app-bg);
+    color: var(--color-slate-900);
+  }
+}
+

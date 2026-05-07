@@ -1,0 +1,62 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Material Product",
+      "description": "Construction material item in stock",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "price": { "type": "number" },
+        "costPrice": { "type": "number" },
+        "stock": { "type": "number" },
+        "unit": { "type": "string" },
+        "category": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "price", "stock", "unit"]
+    },
+    "Sale": {
+      "title": "Sale Transaction",
+      "description": "Record of a sale",
+      "type": "object",
+      "properties": {
+        "customerName": { "type": "string" },
+        "customerPhone": { "type": "string" },
+        "items": { "type": "array" },
+        "totalAmount": { "type": "number" },
+        "profit": { "type": "number" },
+        "discount": { "type": "number" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["totalAmount", "items", "timestamp"]
+    },
+    "Customer": {
+      "title": "Customer",
+      "description": "Client information",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "totalPurchases": { "type": "number" },
+        "lastSeen": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "phone"]
+    }
+  },
+  "firestore": {
+    "products/{productId}": {
+      "schema": "Product",
+      "description": "Inventory products"
+    },
+    "sales/{saleId}": {
+      "schema": "Sale",
+      "description": "Sales records"
+    },
+    "customers/{customerId}": {
+      "schema": "Customer",
+      "description": "Customer database"
+    }
+  }
+}

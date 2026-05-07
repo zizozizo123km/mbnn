@@ -1,0 +1,59 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Auth helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isValidId(id) {
+      return id is string && id.size() <= 64 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Product Rules
+    function isValidProduct(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() <= 200
+        && data.price is number && data.price >= 0
+        && data.stock is number
+        && data.unit is string;
+    }
+
+    match /products/{productId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(productId) && isValidProduct(request.resource.data);
+      allow update: if isSignedIn() && isValidProduct(request.resource.data);
+      allow delete: if isSignedIn();
+    }
+
+    // Sales Rules
+    function isValidSale(data) {
+      return data.totalAmount is number && data.totalAmount >= 0
+        && data.items is list
+        && data.timestamp is timestamp;
+    }
+
+    match /sales/{saleId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(saleId) && isValidSale(request.resource.data);
+      allow update: if false; // Sales should be immutable or admin only
+      allow delete: if isSignedIn(); // In a real app, maybe restricted
+    }
+
+    // Customers Rules
+    function isValidCustomer(data) {
+      return data.name is string && data.name.size() > 0
+        && data.phone is string;
+    }
+
+    match /customers/{customerId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && isValidId(customerId) && isValidCustomer(request.resource.data);
+      allow delete: if isSignedIn();
+    }
+  }
+}
