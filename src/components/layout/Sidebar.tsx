@@ -58,16 +58,12 @@ export function Sidebar() {
 
       <div className="p-4 border-t border-slate-800 mt-auto">
         <div className="bg-slate-800/50 rounded-xl p-3 flex items-center gap-3 mb-4">
-          {user?.photoURL ? (
-            <img src={user.photoURL} alt="" className="w-8 h-8 rounded-full border border-slate-700" />
-          ) : (
-            <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-[10px] font-bold text-white uppercase">
-              {user?.email?.charAt(0)}
-            </div>
-          )}
+          <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-[10px] font-bold text-white uppercase">
+            أ
+          </div>
           <div className="min-w-0">
-            <p className="text-xs font-bold text-white truncate">{user?.displayName || 'أدمن النظام'}</p>
-            <p className="text-[10px] text-slate-500 truncate uppercase">{user?.email}</p>
+            <p className="text-xs font-bold text-white truncate">أدمن النظام</p>
+            <p className="text-[10px] text-slate-500 truncate uppercase">المسؤول الرئيسي</p>
           </div>
         </div>
         <button 

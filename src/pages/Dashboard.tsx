@@ -19,7 +19,7 @@ import {
   AreaChart,
   Area
 } from 'recharts';
-import { formatCurrency } from '../lib/utils';
+import { formatCurrency, cn } from '../lib/utils';
 
 const data = [
   { name: 'الأحد', sales: 4000, profit: 2400 },

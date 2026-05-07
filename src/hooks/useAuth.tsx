@@ -1,46 +1,42 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { auth, signInWithGoogle } from '../lib/firebase';
-import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 
 interface AuthContextType {
-  user: User | null;
+  isAuthenticated: boolean;
   loading: boolean;
-  login: () => Promise<void>;
-  logout: () => Promise<void>;
+  login: (pin: string) => Promise<boolean>;
+  logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
-    });
-    return unsubscribe;
+    const authStatus = localStorage.getItem('isLoggedIn');
+    if (authStatus === 'true') {
+      setIsAuthenticated(true);
+    }
+    setLoading(false);
   }, []);
 
-  const login = async () => {
-    try {
-      await signInWithGoogle();
-    } catch (error) {
-      console.error("Login failed:", error);
+  const login = async (pin: string): Promise<boolean> => {
+    if (pin === '0000') {
+      setIsAuthenticated(true);
+      localStorage.setItem('isLoggedIn', 'true');
+      return true;
     }
+    return false;
   };
 
-  const logout = async () => {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
+  const logout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem('isLoggedIn');
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, loading, login, logout }}>
       {!loading && children}
     </AuthContext.Provider>
   );
